@@ -1,5 +1,6 @@
 package com.thaitran81.common;
 
+import com.google.common.reflect.ClassPath;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URL;
@@ -27,7 +28,14 @@ public class Importer {
 
     private List<String> readAllLines(int year, int day, String fileName) throws Exception {
         var resourceName = String.format("input/year%d/day%02d/%s", year, day, fileName);
-        Optional<Path> path = null;
+        Optional<Path> path = ClassPath.from(ClassLoader.getSystemClassLoader())
+                .getResources().stream()
+                .filter(res -> StringUtils.equals(res.getResourceName(), resourceName))
+                .findFirst()
+                .map(ClassPath.ResourceInfo::url)
+                .map(URL::getPath)
+                .map(s -> s.substring(1))
+                .map(Path::of);
 
         if (path.isPresent()) {
             return Files.readAllLines(path.get());
